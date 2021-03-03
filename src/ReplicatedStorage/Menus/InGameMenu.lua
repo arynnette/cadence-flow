@@ -63,29 +63,29 @@ function InGameMenu:new(_local_services, _game, _song_key)
 	--[[Override--]] function self:do_remove()
 		_stat_display_ui:Destroy()
 		
-		local perf_count, great_count, okay_count, miss_count, max_combo = _game._score_manager:get_end_records()
-		local accuracy = _game._score_manager:get_accuracy()
+		-- local perf_count, great_count, okay_count, miss_count, max_combo = _game._score_manager:get_end_records()
+		-- local accuracy = _game._score_manager:get_accuracy()
 
 
-		local data = {
-			mapid = _song_key;
-			accuracy = accuracy;
-			maxcombo = max_combo;
-			perfects = perf_count;
-			greats = great_count;
-			okays = okay_count;
-			misses = miss_count;
-		}
+		-- local data = {
+		-- 	mapid = _song_key;
+		-- 	accuracy = accuracy;
+		-- 	maxcombo = max_combo;
+		-- 	perfects = perf_count;
+		-- 	greats = great_count;
+		-- 	okays = okay_count;
+		-- 	misses = miss_count;
+		-- }
 
-		spawn(function()
-			if not _force_quit then
-				DebugOut:puts("Writing score...")
-				Networking.Client:Execute("SubmitScore", data)
-				DebugOut:puts("Score has been written!")
-			else
-				print("Score not submitted because you force quitted!")
-			end
-		end)
+		-- spawn(function()
+		-- 	if not _force_quit then
+		-- 		DebugOut:puts("Writing score...")
+		-- 		Networking.Client:Execute("SubmitScore", data)
+		-- 		DebugOut:puts("Score has been written!")
+		-- 	else
+		-- 		print("Score not submitted because you force quitted!")
+		-- 	end
+		-- end)
 
 		_game:teardown()
 

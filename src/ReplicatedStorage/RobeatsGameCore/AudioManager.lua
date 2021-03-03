@@ -1,14 +1,10 @@
-local SPUtil = require(game.ReplicatedStorage.Shared.SPUtil)
 local CurveUtil = require(game.ReplicatedStorage.Shared.CurveUtil)
-local SFXManager = require(game.ReplicatedStorage.RobeatsGameCore.SFXManager)
-local NoteResult = require(game.ReplicatedStorage.RobeatsGameCore.Enums.NoteResult)
-local RandomLua = require(game.ReplicatedStorage.Shared.RandomLua)
-local DebugOut = require(game.ReplicatedStorage.Shared.DebugOut)
 local HitSFXGroup = require(game.ReplicatedStorage.RobeatsGameCore.HitSFXGroup)
 local SongDatabase = require(game.ReplicatedStorage.RobeatsGameCore.SongDatabase)
 local EnvironmentSetup = require(game.ReplicatedStorage.RobeatsGameCore.EnvironmentSetup)
 local AssertType = require(game.ReplicatedStorage.Shared.AssertType)
-local Configuration = require(game.ReplicatedStorage.Configuration)
+
+local TimingPresets = require(game.ReplicatedStorage.TimingPresets)
 
 local SingleNote = require(game.ReplicatedStorage.RobeatsGameCore.NoteTypes.SingleNote)
 local HeldNote = require(game.ReplicatedStorage.RobeatsGameCore.NoteTypes.HeldNote)
@@ -26,41 +22,57 @@ AudioManager.Mode = {
 function AudioManager:new(_game)
 	local self = {}
 
-	local _rate = 1 --Rate multiplier, you may implement some sort of way to modify the rate at runtime.
+	local _rate = 100 / 100 --Rate multiplier, you may implement some sort of way to modify the rate at runtime.
 	
-	--Note speed in milliseconds, from time it takes to spawn the note to time the note is hit. Default value is 1500, or 1.5 seconds.
-	--To add a multiplier to this, set Configuration.Preferences.NoteSpeedMultiplier
+	--Note speed in milliseconds, from time it takes to spawn the note to time the note is hit. Default value is 2000, or 2 seconds.
+	
+	local _current_audio_data
+	
 	local _note_prebuffer_time = 0
-	function self:get_note_prebuffer_time_ms() return _note_prebuffer_time end
+	
+	local _song_key = 0
+	function self:get_song_key() return _song_key end
+	
+	function self:get_note_prebuffer_time_ms() 
+		_current_audio_data = SongDatabase:get_data_for_key(_song_key) --??
+		_note_prebuffer_time = (1-(21/30))*2000
+		return _note_prebuffer_time
+	end
 	
 	--Note timings: millisecond offset (positive is early, negative is late) mapping to what the note result is
-	local _note_okay_max = Configuration.Preferences.NoteOkayMaxMS * _rate --Default: 260
-	local _note_great_max = Configuration.Preferences.NoteGreatMaxMS * _rate --Default: 140
-	local _note_perfect_max = Configuration.Preferences.NotePerfectMaxMS * _rate --Default: 40
-	local _note_perfect_min = Configuration.Preferences.NotePerfectMinMS * _rate --Default: -20
-	local _note_great_min = Configuration.Preferences.NoteGreatMinMS * _rate --Default: -70
-	local _note_okay_min = Configuration.Preferences.NoteOkayMinMS * _rate --Default: -140
+	local window = TimingPresets["Standard"]
+	local _note_bad_max = window.NoteBadMaxMS * _rate
+	local _note_good_max = window.NoteGoodMaxMS * _rate --Default: 260
+	local _note_great_max = window.NoteGreatMaxMS * _rate --Default: 140
+	local _note_perfect_max = window.NotePerfectMaxMS * _rate --Default: 40
+	local _note_marvelous_max = window.NoteMarvelousMaxMS * _rate --Default: 40
+	local _note_marvelous_min = window.NoteMarvelousMinMS * _rate --Default: -20
+	local _note_perfect_min = window.NotePerfectMinMS * _rate --Default: -20
+	local _note_great_min = window.NoteGreatMinMS * _rate --Default: -70
+	local _note_good_min = window.NoteGoodMinMS * _rate
+	local _note_bad_min = window.NoteBadMinMS * _rate
 	
 	--Called in NoteResult:timedelta_to_result(time_to_end, _game)
 	function self:get_note_result_timing()
-		return _note_okay_max, _note_great_max, _note_perfect_max, _note_perfect_min, _note_great_min, _note_okay_min
+		return _note_bad_max, _note_good_max, _note_great_max, _note_perfect_max, _note_marvelous_max, _note_marvelous_min,  _note_perfect_min, _note_great_min, _note_good_min,_note_bad_min
 	end
 	
 	--Time in milliseconds after note expected hit time to remove note (and do a Time miss)
-	local _note_remove_time = Configuration.Preferences.NoteRemoveTimeMS * _rate --Default: -200
+	local _note_remove_time = -200 * _rate --Default: -200
 	function self:get_note_remove_time() return _note_remove_time end
 	
 	--Time in milliseconds countdown will take
-	local _pre_countdown_time_ms = Configuration.Preferences.PreStartCountdownTimeMS --Default: 3000
+	local _pre_countdown_time_ms = 3000 --Default: 3000
 	
 	--Time in milliseconds to wait after game finishes to end
-	local _post_finish_wait_time_ms = Configuration.Preferences.PostFinishWaitTimeMS --Default:300
+	local _post_finish_wait_time_ms = 300 --Default:300
 
 	--Audio offset is milliseconds
-	local _audio_time_offset = Configuration.Preferences.AudioOffset
+	local _audio_time_offset = 0
 	
 	--The game audio
-	local _bgm = Instance.new("Sound", EnvironmentSetup:get_local_elements_folder())
+	local _bgm = Instance.new("Sound")
+	_bgm.Parent = EnvironmentSetup:get_local_elements_folder()
 	_bgm.Name = "BGM"
 	function self:get_bgm() return _bgm end
 	
@@ -82,9 +94,6 @@ function AudioManager:new(_game)
 	local _pre_start_time_ms = 0
 	local _post_playing_time_ms = 0
 	local _audio_volume = 0.5
-
-	local _song_key = 0
-	function self:get_song_key() return _song_key end
 
 	local _note_count = 0
 	function self:get_note_count() return _note_count end
@@ -120,7 +129,7 @@ function AudioManager:new(_game)
 		end
 		
 		--Apply note speed multiplier
-		_note_prebuffer_time = (_current_audio_data.AudioNotePrebufferTime / Configuration.Preferences.NoteSpeedMultiplier)*_rate
+		_note_prebuffer_time = 800*_rate
 	end
 
 	function self:teardown()

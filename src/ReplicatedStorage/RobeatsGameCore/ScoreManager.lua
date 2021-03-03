@@ -15,17 +15,23 @@ function ScoreManager:new(_game)
 	local _chain = 0
 	function self:get_chain() return _chain end
 
+	local _marvelous_count = 0
 	local _perfect_count = 0
 	local _great_count = 0
-	local _ok_count = 0
+	local _good_count = 0
+	local _bad_count = 0
 	local _miss_count = 0
 	local _max_chain = 0
-	function self:get_end_records() return _perfect_count,_great_count,_ok_count,_miss_count,_max_chain end
+	function self:get_end_records() return _marvelous_count,_perfect_count,_great_count,_good_count,_bad_count,_miss_count,_max_chain end
+
+	function self:get_total_judgements()
+		return _marvelous_count + _perfect_count + _great_count + _good_count + _bad_count
+	end
+
 	function self:get_accuracy()
-		local total_count = _game._audio_manager:get_note_count() + _miss_count
+		local total_count = self:get_total_judgements() + _miss_count
 		
-		--Accuracy calculation formula
-		return ((_perfect_count * 1.0) + (_great_count * 0.75) + (_ok_count * 0.25)) / total_count
+		return ((_marvelous_count * 1.0) + (_perfect_count * 1.0) + (_great_count * 0.75) + (_good_count * 0.37) + (_bad_count * 0.25)) / total_count
 	end
 
 	local _frame_has_played_sfx = false
@@ -47,17 +53,12 @@ function ScoreManager:new(_game)
 			
 			--Make sure only one sfx is played per frame
 			if _frame_has_played_sfx == false then
-				if note_result == NoteResult.Perfect then
+				if note_result ~= NoteResult.Miss then
 					if params.IsHeldNoteBegin == true then
 						_game._audio_manager:get_hit_sfx_group():play_first()
 					else
 						_game._audio_manager:get_hit_sfx_group():play_alternating()
 					end
-
-				elseif note_result == NoteResult.Great then
-					_game._audio_manager.get_hit_sfx_group():play_first()
-				elseif note_result == NoteResult.Okay then
-					_game._sfx_manager:play_sfx(SFXManager.SFX_DRUM_OKAY)
 				else
 					_game._sfx_manager:play_sfx(SFXManager.SFX_MISS)
 				end
@@ -77,17 +78,24 @@ function ScoreManager:new(_game)
 		end
 		
 		--Increment stats
-		if note_result == NoteResult.Perfect then
-			_chain = _chain + 1
-			_perfect_count = _perfect_count + 1
+		if note_result == NoteResult.Marvelous then
+			_marvelous_count += 1
+			_chain += 1
+
+		elseif note_result == NoteResult.Perfect then
+			_chain += 1
+			_perfect_count += 1
 
 		elseif note_result == NoteResult.Great then
-			_chain = _chain + 1
-			_great_count = _great_count + 1
+			_chain += 1
+			_great_count += 1
 
-		elseif note_result == NoteResult.Okay then
-			_ok_count = _ok_count + 1
+		elseif note_result == NoteResult.Good then
+			_chain += 1
+			_good_count += 1
 
+		elseif note_result == NoteResult.Bad then
+			_bad_count = _bad_count + 1
 		else
 			if _chain > 0 then
 				_chain = 0
@@ -97,7 +105,7 @@ function ScoreManager:new(_game)
 				_miss_count = _miss_count + 1
 			end
 		end
-		
+
 		_max_chain = math.max(_chain,_max_chain)
 	end
 
