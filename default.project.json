@@ -1,0 +1,62 @@
+{
+	"name": "RobeatsCustomServerTemplate",
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$path": "src/ReplicatedStorage"
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"$path": "src/StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"$path": "src/StarterPlayer/StarterPlayerScripts"
+			},
+			"StarterCharacterScripts": {
+				"$className": "StarterCharacterScripts",
+				"$path": "src/StarterPlayer/StarterCharacterScripts"
+			}
+		},
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"$path": "src/ServerScriptService"
+		},
+
+		"Workspace": {
+			"$ignoreUnknownInstances": true,
+			"$className": "Workspace",
+			"$path": "src/Workspace",
+			"$properties": {
+				"FilteringEnabled": true
+			}
+		},
+		"Lighting": {
+			"$className": "Lighting",
+			"$properties": {
+				"Ambient": [
+					0,
+					0,
+					0
+				],
+				"Brightness": 2,
+				"GlobalShadows": true,
+				"Outlines": false,
+				"Technology": "Voxel"
+			}
+		},
+		"SoundService": {
+			"$className": "SoundService",
+			"$properties": {
+				"RespectFilteringEnabled": true
+			}
+		},
+		"HttpService": {
+			"$className": "HttpService",
+			"$properties": {
+				"HttpEnabled": true
+			}
+		}
+	}
+}
