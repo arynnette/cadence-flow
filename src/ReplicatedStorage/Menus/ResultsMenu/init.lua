@@ -12,12 +12,18 @@ function ResultsMenu:new(_local_services, _score_data)
 	local self = MenuBase:new()
 	local _results_menu_ui
 
+	local _should_remove = false
+
 	local _animation
 
 	local _accuracy_marks = {100,95,90,80,70,60,50}
 	
 	function self:cons()
 		_results_menu_ui = EnvironmentSetup:get_menu_protos_folder().ResultsMenuUI:Clone()
+
+		_results_menu_ui.NextButton.MouseButton1Click:Connect(function()
+			_should_remove = true
+		end)
 
 		_animation = Animation.new(_results_menu_ui)
 	end
@@ -32,6 +38,7 @@ function ResultsMenu:new(_local_services, _score_data)
 	end
 	
 	--[[Override--]] function self:do_remove()
+		_animation:Stop()
 		_results_menu_ui:Destroy()
 	end
 	
