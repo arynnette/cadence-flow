@@ -9,6 +9,8 @@ function HitParams:new()
 	--Should create Hit Effect
 	self.PlayHoldEffect = false
 	self.HoldEffectPosition = Vector3.new()
+
+	self.GhostTap = false
 	
 	--Is a whiff miss (miss not associated with any note, aka a "ghost tap")
 	self.WhiffMiss = false
@@ -45,6 +47,11 @@ function HitParams:new()
 	function self:set_time_miss(val) 
 		self.TimeMiss = val
 		return self 
+	end
+
+	function self:set_ghost_tap(val)
+		self.GhostTap = val
+		return self
 	end
 	
 	return self

@@ -85,9 +85,9 @@ function NoteTrackSystem:new(_game, _game_slot)
 		for i=1,_notes:count() do
 			local itr_note = _notes:get(i)
 			if itr_note:get_track_index() == track_index then
-				local did_hit, note_result = itr_note:test_hit()
+				local did_hit, note_result, renderable_hit = itr_note:test_hit()
 				if did_hit then
-					itr_note:on_hit(note_result,i)
+					itr_note:on_hit(note_result,i,renderable_hit)
 					hit_found = true
 					break
 				end
@@ -95,12 +95,11 @@ function NoteTrackSystem:new(_game, _game_slot)
 		end
 
 		if hit_found == false then
-			--Ghost tapping, comment out to disable
 			_game._score_manager:register_hit(
 				NoteResult.Miss,
 				_game_slot,
 				track_index,
-				HitParams:new():set_play_hold_effect(false):set_whiff_miss(true)
+				HitParams:new():set_play_hold_effect(false):set_whiff_miss(true):set_ghost_tap(true)
 			)
 		end
 	end
@@ -111,9 +110,9 @@ function NoteTrackSystem:new(_game, _game_slot)
 		for i=1,_notes:count() do
 			local itr_note = _notes:get(i)
 			if itr_note:get_track_index() == track_index then
-				local did_release, note_result = itr_note:test_release()
+				local did_release, note_result, renderable_hit = itr_note:test_release()
 				if did_release then
-					itr_note:on_release(note_result,i)
+					itr_note:on_release(note_result,i,renderable_hit)
 					break
 				end
 			end

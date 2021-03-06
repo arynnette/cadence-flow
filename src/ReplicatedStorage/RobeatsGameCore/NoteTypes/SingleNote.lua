@@ -7,6 +7,7 @@ local EnvironmentSetup = require(game.ReplicatedStorage.RobeatsGameCore.Environm
 local HitParams = require(game.ReplicatedStorage.RobeatsGameCore.HitParams)
 local HoldingNoteEffect = require(game.ReplicatedStorage.RobeatsGameCore.Effects.HoldingNoteEffect)
 local TriggerNoteEffect = require(game.ReplicatedStorage.RobeatsGameCore.Effects.TriggerNoteEffect)
+local RenderableHit = require(game.ReplicatedStorage.RobeatsGameCore.RenderableHit)
 
 local SingleNote = {}
 SingleNote.Type = "SingleNote"
@@ -146,13 +147,13 @@ function SingleNote:new(_game, _track_index, _slot_index, _creation_time_ms, _hi
 		local did_hit, note_result = NoteResult:timedelta_to_result(time_to_end, _game)
 
 		if did_hit then
-			return did_hit, note_result
+			return did_hit, note_result, RenderableHit:new(_hit_time_ms, time_to_end, note_result)
 		end
 
 		return false, NoteResult.Miss
 	end
 
-	--[[Override--]] function self:on_hit(note_result, i_notes)
+	--[[Override--]] function self:on_hit(note_result, i_notes, renderable_hit)
 		_game._effects:add_effect(TriggerNoteEffect:new(
 			_game,
 			_position,
@@ -163,7 +164,8 @@ function SingleNote:new(_game, _track_index, _slot_index, _creation_time_ms, _hi
 			note_result,
 			_slot_index,
 			_track_index,
-			HitParams:new():set_play_hold_effect(true, _position)
+			HitParams:new():set_play_hold_effect(true, _position),
+			renderable_hit
 		)
 
 		_state = SingleNote.State.DoRemove

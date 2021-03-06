@@ -2,6 +2,10 @@ local RandomLua = require(game.ReplicatedStorage.Shared.RandomLua)
 
 local SPUtil = {}
 
+function SPUtil:inverse_lerp(min, max, num)
+	return ((num - min) / (max - min))
+end
+
 function SPUtil:rad_to_deg(rad)
 	return rad * 180.0 / math.pi
 end

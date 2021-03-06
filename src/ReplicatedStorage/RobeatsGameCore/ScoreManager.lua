@@ -5,6 +5,7 @@ local SFXManager = require(game.ReplicatedStorage.RobeatsGameCore.SFXManager)
 local InputUtil = require(game.ReplicatedStorage.Shared.InputUtil)
 local NoteResultPopupEffect = require(game.ReplicatedStorage.RobeatsGameCore.Effects.NoteResultPopupEffect)
 local HoldingNoteEffect = require(game.ReplicatedStorage.RobeatsGameCore.Effects.HoldingNoteEffect)
+local RenderableHit = require(game.ReplicatedStorage.RobeatsGameCore.RenderableHit)
 local DebugOut = require(game.ReplicatedStorage.Shared.DebugOut)
 
 local ScoreManager = {}
@@ -15,6 +16,15 @@ function ScoreManager:new(_game)
 	local _chain = 0
 	function self:get_chain() return _chain end
 
+	local result_to_point_increase = {
+		[NoteResult.Miss] = 0;
+		[NoteResult.Bad] = 50;
+		[NoteResult.Good] = 100;
+		[NoteResult.Great] = 200;
+		[NoteResult.Perfect] = 300;
+		[NoteResult.Marvelous] = 375;
+	}
+
 	local _marvelous_count = 0
 	local _perfect_count = 0
 	local _great_count = 0
@@ -22,6 +32,10 @@ function ScoreManager:new(_game)
 	local _bad_count = 0
 	local _miss_count = 0
 	local _max_chain = 0
+	local _score = 0
+	local _ghost_taps = 0
+	local _hits = {}
+
 	function self:get_end_records() return _marvelous_count,_perfect_count,_great_count,_good_count,_bad_count,_miss_count,_max_chain end
 
 	function self:get_total_judgements()
@@ -40,16 +54,20 @@ function ScoreManager:new(_game)
 		note_result,
 		slot_index,
 		track_index,
-		params
+		params,
+		renderable_hit
 	)
 		local track = _game:get_tracksystem(slot_index):get_track(track_index)
-		_game._effects:add_effect(NoteResultPopupEffect:new(
-			_game,
-			track:get_end_position() + Vector3.new(0,0.25,0),
-			note_result
-		))
 
-		if params.PlaySFX == true then
+		if not params.GhostTap then
+			_game._effects:add_effect(NoteResultPopupEffect:new(
+				_game,
+				track:get_end_position() + Vector3.new(0,0.25,0),
+				note_result
+			))
+		end
+
+		if params.PlaySFX == true and (not params.GhostTap) then
 			
 			--Make sure only one sfx is played per frame
 			if _frame_has_played_sfx == false then
@@ -97,7 +115,10 @@ function ScoreManager:new(_game)
 		elseif note_result == NoteResult.Bad then
 			_bad_count = _bad_count + 1
 		else
-			if _chain > 0 then
+			if params.GhostTap then
+				_ghost_taps += 1
+
+			elseif _chain > 0 then
 				_chain = 0
 				_miss_count = _miss_count + 1
 
@@ -106,8 +127,17 @@ function ScoreManager:new(_game)
 			end
 		end
 
+		_score += result_to_point_increase[note_result]
+
 		_max_chain = math.max(_chain,_max_chain)
+		table.insert(_hits, renderable_hit)
 	end
+
+	function self:get_hits() return _hits end
+
+	function self:get_score() return _score end
+
+	function self:get_ghost_taps() return _ghost_taps end
 
 	function self:update(dt_scale)
 		_frame_has_played_sfx = false

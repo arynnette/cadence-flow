@@ -1,7 +1,7 @@
 local DataStoreService = game:GetService("DataStoreService")
 local ScoreDatabase = DataStoreService:GetDataStore("ScoreDatabase")
 local HttpService = game:GetService("HttpService")
-local Networking = require(game.ReplicatedStorage.Networking)
+local Network = require(game.ReplicatedStorage.Network)
 local AssertType = require(game.ReplicatedStorage.Shared.AssertType)
 local SongDatabase = require(game.ReplicatedStorage.RobeatsGameCore.SongDatabase)
 local CustomServerSettings = require(game.Workspace.CustomServerSettings)
@@ -10,7 +10,7 @@ local function getLeaderboardKey(mapid)
 	return string.format("leaderboard_songkey(%s)", tostring(mapid))
 end
 
-Networking.Server:Register("SubmitScore", function(player, sentData)
+Network.onMessage("SubmitScore", function(player, sentData)
 		AssertType:is_true(SongDatabase:contains_key(sentData.mapid))
 		AssertType:is_number(sentData.accuracy)
 		AssertType:is_int(sentData.maxcombo)
@@ -59,7 +59,7 @@ Networking.Server:Register("SubmitScore", function(player, sentData)
 		end
 end)
 
-Networking.Server:Register("GetLeaderboard", function(player, request)
+Network.onRequest("GetLeaderboard", function(player, request)
 		AssertType:is_true(SongDatabase:contains_key(request.mapid))
 		
 		local name = getLeaderboardKey(request.mapid)

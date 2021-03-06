@@ -4,7 +4,6 @@ local SPUtil = require(game.ReplicatedStorage.Shared.SPUtil)
 local RobeatsGame = require(game.ReplicatedStorage.RobeatsGameCore.RobeatsGame)
 local AudioManager = require(game.ReplicatedStorage.RobeatsGameCore.AudioManager)
 local DebugOut = require(game.ReplicatedStorage.Shared.DebugOut)
-local Networking = require(game.ReplicatedStorage.Networking)
 
 local InGameMenu = {}
 
@@ -63,19 +62,27 @@ function InGameMenu:new(_local_services, _game, _song_key)
 	--[[Override--]] function self:do_remove()
 		_stat_display_ui:Destroy()
 		
-		-- local perf_count, great_count, okay_count, miss_count, max_combo = _game._score_manager:get_end_records()
-		-- local accuracy = _game._score_manager:get_accuracy()
+		local marv_count, perf_count, great_count, good_count, bad_count, miss_count, max_combo = _game._score_manager:get_end_records()
+		local accuracy = _game._score_manager:get_accuracy()
+		local hits = _game._score_manager:get_hits()
+		local score = _game._score_manager:get_score()
+		local ghost_taps = _game._score_manager:get_ghost_taps()
 
 
-		-- local data = {
-		-- 	mapid = _song_key;
-		-- 	accuracy = accuracy;
-		-- 	maxcombo = max_combo;
-		-- 	perfects = perf_count;
-		-- 	greats = great_count;
-		-- 	okays = okay_count;
-		-- 	misses = miss_count;
-		-- }
+		local data = {
+			_song_key = _song_key;
+			accuracy = accuracy;
+			max_combo = max_combo;
+			marv_count = marv_count;
+			perf_count = perf_count;
+			great_count = great_count;
+			good_count = good_count;
+			bad_count = bad_count;
+			miss_count = miss_count;
+			score = score;
+			hits = hits;
+			ghost_taps = ghost_taps;
+		}
 
 		-- spawn(function()
 		-- 	if not _force_quit then

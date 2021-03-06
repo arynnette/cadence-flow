@@ -4,11 +4,6 @@ rtv.AudioAssetId = "rbxassetid://3257333274"
 rtv.AudioTimeOffset = -70 -- Edit this if needed
 rtv.AudioVolume = 0.5 -- Do not edit this unless if audio is noticeably too quiet or loud
      -- You do not have to edit below here --
-rtv.totalNotes = 5815
-rtv.totalHolds = 346
-rtv.averageNps = 18.637820512820515
-rtv.maxNps = 28
-rtv.songLength = 311.641
 rtv.AudioFilename = "A World Away (DJKurara Remix)"
 rtv.AudioDescription = ""
 rtv.AudioCoverImageAssetId = ""
