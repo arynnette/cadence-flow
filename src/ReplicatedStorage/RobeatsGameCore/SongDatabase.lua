@@ -9,6 +9,17 @@ local SongMaps = workspace:WaitForChild("SongMaps")
 
 local SongDatabase = {}
 
+local invalid_require_error_message = [[
+	There is an error in one of the song modules!
+	Usually this is caused by a wacky require call in the module (this should never happen), or because there is no return statement at the end of the song module (song modules should end with "return rtv").
+
+	If there is still an issue please contact one of the game's maintainers.
+
+	Stack trace:
+
+	%s
+]]
+
 SongDatabase.SongMode = {
 	Normal = 0;
 	SupporterOnly = 1;
@@ -20,27 +31,45 @@ function SongDatabase:new()
 	self.on_map_added = Instance.new("BindableEvent")
 	self.on_map_removed = Instance.new("BindableEvent")
 
-	local songs = SongMaps:GetChildren()
+	local _all_keys = SPList:new()
+
+	local function tryrequire(module, on_fail)
+		on_fail = on_fail or function() end
+		local data
+		local suc, err = pcall(function()
+			data = require(module)
+		end)
+
+		if not suc then
+			on_fail(err)
+		end
+
+		return data
+	end
 	
 	SongMaps.ChildAdded:Connect(function(child)
 		DebugOut:puts("Song added! (filename %s)", child.Name)
 
-		local derived_key = #songs+1
+		local derived_key = _all_keys:count()+1
 
-		local audio_data = require(child)
-		SongErrorParser:scan_audiodata_for_errors(audio_data)
+		local audio_data = tryrequire(child, function(err)
+			DebugOut:puts(invalid_require_error_message, err)
+		end)
 		
 		child:SetAttribute("_key", derived_key)
 
-		table.insert(songs, child)
-		
-		self.on_map_added:Fire(audio_data, derived_key, child)
+		if audio_data then
+			SongErrorParser:scan_audiodata_for_errors(audio_data)
+
+			_all_keys:push_back(audio_data)
+			
+			self.on_map_added:Fire(audio_data, derived_key, child)
+		end
 	end)
 
 	SongMaps.ChildRemoved:Connect(function(child)
 		local _key = child:GetAttribute("_key")
-		table.remove(songs, _key)
-
+		_all_keys:remove_at(_key)	
 		self.on_map_removed:Fire(_key, child)
 	end)
 
@@ -50,21 +79,27 @@ function SongDatabase:new()
 			local itr_map = song_list[i]
 			itr_map:SetAttribute("_key", i)
 
-			local audio_data = require(itr_map)
-			SongErrorParser:scan_audiodata_for_errors(audio_data)
+			local audio_data = tryrequire(itr_map, function(err)
+				DebugOut:puts(invalid_require_error_message, err)
+			end)
+
+			if audio_data then
+				SongErrorParser:scan_audiodata_for_errors(audio_data)
+				_all_keys:push_back(audio_data)
+			end
 		end
 	end
 
 	function self:key_itr()
-		return pairs(songs)
+		return ipairs(_all_keys._table)
 	end
 
 	function self:get_data_for_key(key)
-		return require(songs[key])
+		return _all_keys:get(key)
 	end
 
 	function self:contains_key(key)
-		return songs[key] ~= nil
+		return _all_keys:get(key) ~= nil
 	end
 
 	function self:key_get_audiomod(key)
