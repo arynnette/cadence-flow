@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local FlashEvery = require(game.ReplicatedStorage.Shared.FlashEvery)
 local CurveUtil = require(game.ReplicatedStorage.Shared.CurveUtil)
 local SPUtil = require(game.ReplicatedStorage.Shared.SPUtil)
+local TryRequire = require(game.ReplicatedStorage.Shared.TryRequire)
 
 local RetrieveSongsFlash = FlashEvery:new(15)
 
@@ -34,8 +35,8 @@ RunService.Heartbeat:Connect(function(dt)
 
         for _, map in pairs(newMapsChildren) do
             local wasFound = false
-            for __, map2 in pairs(workspace.SongMaps:GetChildren()) do
-                if SPUtil:shallow_equal(require(map), require(map2), true) then
+            for _, map2 in pairs(workspace.SongMaps:GetChildren()) do
+                if SPUtil:shallow_equal(TryRequire(map), TryRequire(map2), true) then
                     wasFound = true
                     break
                 end

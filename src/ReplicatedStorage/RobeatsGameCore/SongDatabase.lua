@@ -1,6 +1,7 @@
 local SPList = require(game.ReplicatedStorage.Shared.SPList)
 local SPDict = require(game.ReplicatedStorage.Shared.SPDict)
 local SPUtil = require(game.ReplicatedStorage.Shared.SPUtil)
+local TryRequire = require(game.ReplicatedStorage.Shared.TryRequire)
 local SongErrorParser = require(game.ReplicatedStorage.RobeatsGameCore.SongErrorParser)
 
 local DebugOut = require(game.ReplicatedStorage.Shared.DebugOut)
@@ -32,27 +33,13 @@ function SongDatabase:new()
 	self.on_map_removed = Instance.new("BindableEvent")
 
 	local _all_keys = SPList:new()
-
-	local function tryrequire(module, on_fail)
-		on_fail = on_fail or function() end
-		local data
-		local suc, err = pcall(function()
-			data = require(module)
-		end)
-
-		if not suc then
-			on_fail(err)
-		end
-
-		return data
-	end
 	
 	SongMaps.ChildAdded:Connect(function(child)
 		DebugOut:puts("Song added! (filename %s)", child.Name)
 
 		local derived_key = _all_keys:count()+1
 
-		local audio_data = tryrequire(child, function(err)
+		local audio_data = TryRequire(child, function(err)
 			DebugOut:puts(invalid_require_error_message, err)
 		end)
 		
@@ -79,7 +66,7 @@ function SongDatabase:new()
 			local itr_map = song_list[i]
 			itr_map:SetAttribute("_key", i)
 
-			local audio_data = tryrequire(itr_map, function(err)
+			local audio_data = TryRequire(itr_map, function(err)
 				DebugOut:puts(invalid_require_error_message, err)
 			end)
 
