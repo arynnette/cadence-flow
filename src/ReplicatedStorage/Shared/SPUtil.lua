@@ -156,6 +156,10 @@ function SPUtil:bind_input_fire(object_, callback_)
 end
 
 function SPUtil:shallow_equal(t1, t2, ignore_subtables)
+	if typeof(t1) ~= "table" or typeof(t2) ~= "table" then
+		return t1 == t2
+	end
+
 	if t1 == t2 then
 		return true
 	end
