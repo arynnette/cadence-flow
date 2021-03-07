@@ -119,20 +119,20 @@ function SongSelectMenu:new(_local_services)
 	end
 
 	function self:add_song_button(song_key)
-		local itr_list_element = song_list_element_proto:Clone()
-		itr_list_element.Parent = song_list
-		itr_list_element.LayoutOrder = song_key
-		SongDatabase:render_coverimage_for_key(itr_list_element.SongCover, itr_list_element.SongCoverOverlay, song_key)
-		itr_list_element.NameDisplay.Text = SongDatabase:get_title_for_key(song_key)
-		itr_list_element.DifficultyDisplay.Text = string.format("Difficulty: %d",SongDatabase:get_difficulty_for_key(song_key))
+		local list_element = song_list_element_proto:Clone()
+		list_element.Parent = song_list
+		list_element.LayoutOrder = song_key
+		SongDatabase:render_coverimage_for_key(list_element.SongCover, list_element.SongCoverOverlay, song_key)
+		list_element.NameDisplay.Text = SongDatabase:get_title_for_key(song_key)
+		list_element.DifficultyDisplay.Text = string.format("Difficulty: %d",SongDatabase:get_difficulty_for_key(song_key))
 		if SongDatabase:key_get_audiomod(song_key) == SongDatabase.SongMode.SupporterOnly then
-			itr_list_element.DifficultyDisplay.Text = itr_list_element.DifficultyDisplay.Text .. " (Supporter Only)"
+			list_element.DifficultyDisplay.Text = list_element.DifficultyDisplay.Text .. " (Supporter Only)"
 		end
 
-		itr_list_element.Name = string.format("SongKey%0d", song_key)
-		itr_list_element:SetAttribute("_key", song_key)
+		list_element.Name = string.format("SongKey%0d", song_key)
+		list_element:SetAttribute("_key", song_key)
 		
-		SPUtil:bind_input_fire(itr_list_element, function(input)
+		SPUtil:bind_input_fire(list_element, function(input)
 			self:select_songkey(song_key)
 		end)
 	end
