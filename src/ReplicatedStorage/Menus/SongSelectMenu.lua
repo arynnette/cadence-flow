@@ -24,35 +24,38 @@ function SongSelectMenu:new(_local_services)
 
 	local _input = _local_services._input
 
+	local song_list_element_proto
+	local song_list
+
 	local _leaderboard_display
+
+	local on_song_added_con
+	local on_song_removed_con
 	
 	function self:cons()
 		_song_select_ui = EnvironmentSetup:get_menu_protos_folder().SongSelectUI:Clone()
 		
-		local song_list = _song_select_ui.SongList
+		song_list = _song_select_ui.SongList
 		
 		--Expand the scrolling list to fit contents
 		song_list.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 			song_list.CanvasSize = UDim2.new(0, 0, 0, song_list.UIListLayout.AbsoluteContentSize.Y)
 		end)
 		
-		local song_list_element_proto = song_list.SongListElementProto
+		song_list_element_proto = song_list.SongListElementProto
 		song_list_element_proto.Parent = nil
-		for itr_songkey, itr_songdata in SongDatabase:key_itr() do
-			local itr_list_element = song_list_element_proto:Clone()
-			itr_list_element.Parent = song_list
-			itr_list_element.LayoutOrder = itr_songkey
-			SongDatabase:render_coverimage_for_key(itr_list_element.SongCover, itr_list_element.SongCoverOverlay, itr_songkey)
-			itr_list_element.NameDisplay.Text = SongDatabase:get_title_for_key(itr_songkey)
-			itr_list_element.DifficultyDisplay.Text = string.format("Difficulty: %d",SongDatabase:get_difficulty_for_key(itr_songkey))
-			if SongDatabase:key_get_audiomod(itr_songkey) == SongDatabase.SongMode.SupporterOnly then
-				itr_list_element.DifficultyDisplay.Text = itr_list_element.DifficultyDisplay.Text .. " (Supporter Only)"
-			end
-			
-			SPUtil:bind_input_fire(itr_list_element, function(input)
-				self:select_songkey(itr_songkey)
-			end)
+
+		for itr_songkey, _ in SongDatabase:key_itr() do
+			self:add_song_button(itr_songkey)
 		end
+
+		on_song_added_con = SongDatabase.on_map_added.Event:Connect(function(_, key)
+			self:add_song_button(key)
+		end)
+
+		on_song_removed_con = SongDatabase.on_map_removed.Event:Connect(function(key)
+			self:remove_song_button(key)
+		end)
 		
 		_leaderboard_display = LeaderboardDisplay:new(
 			_song_select_ui.LeaderboardSection, 
@@ -112,6 +115,33 @@ function SongSelectMenu:new(_local_services)
 					MarketplaceService:PromptGamePassPurchase(game.Players.LocalPlayer, CustomServerSettings.SupporterGamepassID)
 				end)
 			)
+		end
+	end
+
+	function self:add_song_button(song_key)
+		local itr_list_element = song_list_element_proto:Clone()
+		itr_list_element.Parent = song_list
+		itr_list_element.LayoutOrder = song_key
+		SongDatabase:render_coverimage_for_key(itr_list_element.SongCover, itr_list_element.SongCoverOverlay, song_key)
+		itr_list_element.NameDisplay.Text = SongDatabase:get_title_for_key(song_key)
+		itr_list_element.DifficultyDisplay.Text = string.format("Difficulty: %d",SongDatabase:get_difficulty_for_key(song_key))
+		if SongDatabase:key_get_audiomod(song_key) == SongDatabase.SongMode.SupporterOnly then
+			itr_list_element.DifficultyDisplay.Text = itr_list_element.DifficultyDisplay.Text .. " (Supporter Only)"
+		end
+
+		itr_list_element.Name = string.format("SongKey%0d", song_key)
+		itr_list_element:SetAttribute("_key", song_key)
+		
+		SPUtil:bind_input_fire(itr_list_element, function(input)
+			self:select_songkey(song_key)
+		end)
+	end
+
+	function self:remove_song_button(song_key)
+		for _, v in ipairs(song_list:GetChildren()) do
+			if v:GetAttribute("_key") == song_key then
+				v:Destroy()
+			end
 		end
 	end
 	
