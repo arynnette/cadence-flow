@@ -132,15 +132,9 @@ function SongDatabase:new()
 
 	function self:get_song_length_for_key(key)
 		local data = self:get_data_for_key(key)
-		local hit_ob = data.HitObjects
-		
-		local len = 0
+		local last_hit_ob = data.HitObjects[#data.HitObjects]
 
-		for _, hit_object in pairs(hit_ob) do
-			len = math.max(hit_object.Time + (hit_object.Duration or 0), len)
-		end
-		
-		return len
+		return last_hit_ob.Time + (last_hit_ob.Duration or 0)
 	end
 	
 	function self:invalid_songkey() return -1 end
