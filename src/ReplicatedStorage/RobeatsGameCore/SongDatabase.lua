@@ -20,25 +20,27 @@ function SongDatabase:new()
 	self.on_map_added = Instance.new("BindableEvent")
 	self.on_map_removed = Instance.new("BindableEvent")
 
-	local _all_keys = SPDict:new()
-	local _key_to_fusionresult = SPDict:new()
+	local songs = SongMaps:GetChildren()
 	
 	SongMaps.ChildAdded:Connect(function(child)
 		DebugOut:puts("Song added! (filename %s)", child.Name)
 
-		local derived_key = _all_keys:count()+1
+		local derived_key = #songs+1
 
 		local audio_data = require(child)
 		SongErrorParser:scan_audiodata_for_errors(audio_data)
-		self:add_key_to_data(derived_key,audio_data)
+		
+		child:SetAttribute("_key", derived_key)
 
+		table.insert(songs, child)
+		
 		self.on_map_added:Fire(audio_data, derived_key, child)
 	end)
 
 	SongMaps.ChildRemoved:Connect(function(child)
 		local _key = child:GetAttribute("_key")
+		table.remove(songs, _key)
 
-		self:remove_key_from_data(_key)
 		self.on_map_removed:Fire(_key, child)
 	end)
 
@@ -50,32 +52,19 @@ function SongDatabase:new()
 
 			local audio_data = require(itr_map)
 			SongErrorParser:scan_audiodata_for_errors(audio_data)
-			self:add_key_to_data(i,audio_data)
 		end
-	end
-
-	function self:add_key_to_data(key,data)
-		if _all_keys:contains(key) then
-			error("SongDatabase:add_key_to_data duplicate",key)
-		end
-		_all_keys:add(key,data)
-		data.__key = key
-	end
-
-	function self:remove_key_from_data(key)
-		_all_keys:remove(key)
 	end
 
 	function self:key_itr()
-		return _all_keys:key_itr()
+		return pairs(songs)
 	end
 
 	function self:get_data_for_key(key)
-		return _all_keys:get(key)
+		return require(songs[key])
 	end
 
 	function self:contains_key(key)
-		return _all_keys:contains(key)
+		return songs[key] ~= nil
 	end
 
 	function self:key_get_audiomod(key)
