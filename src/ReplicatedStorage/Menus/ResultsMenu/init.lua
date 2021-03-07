@@ -37,6 +37,11 @@ function ResultsMenu:new(_local_services, _score_data)
 	function self:cons()
 		_results_menu_ui = EnvironmentSetup:get_menu_protos_folder().ResultsMenuUI:Clone()
 
+		local map_info = _results_menu_ui.MapInfo
+		map_info.SongName.TextLabel.Text = string.format("%s - %s",
+			SongDatabase:get_artist_for_key(_score_data._song_key),
+			SongDatabase:get_title_for_key(_score_data._song_key))
+
 		local play_rating = Rating:get_rating_from_accuracy(_score_data._song_key, _score_data.accuracy)
 		local song_length = SongDatabase:get_song_length_for_key(_score_data._song_key)
 
@@ -52,7 +57,7 @@ function ResultsMenu:new(_local_services, _score_data)
 		local mean = 0
 		
 		for _, hit in ipairs(_score_data.hits) do
-			local x = hit.hit_object_time / song_length
+			local x = (hit.hit_object_time-4000) / song_length
 			local y = SPUtil:inverse_lerp(-250, 250, hit.time_left)
 			
 			local dot = Instance.new("Frame")
