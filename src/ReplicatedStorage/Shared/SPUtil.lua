@@ -155,6 +155,30 @@ function SPUtil:bind_input_fire(object_, callback_)
 	end
 end
 
+function SPUtil:shallow_equal(t1, t2, ignore_subtables)
+	if t1 == t2 then
+		return true
+	end
+
+	for i, v in pairs(t1) do
+		if not (typeof(v) == "table" and ignore_subtables) then
+			if t2[i] ~= v then
+				return false
+			end
+		end
+	end
+
+	for i, v in pairs(t2) do
+		if not (typeof(v) == "table" and ignore_subtables) then
+			if t1[i] ~= v then
+				return false
+			end
+		end
+	end
+
+	return true
+end
+
 function SPUtil:copy_table(datatable)
 	local tblRes={}
 	if type(datatable)=="table" then
